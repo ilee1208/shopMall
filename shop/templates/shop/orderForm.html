@@ -1,0 +1,359 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load mathfilters %}
+
+{% block content %}
+
+<style type="text/css">
+
+.section-head {width:100%;   position: relative;    text-align: center;   }
+.section-head h3{position: relative;    display: inline-block;    font-size: 17px;   line-height: 1.3846153846;    text-transform: uppercase;    color: #808080;    z-index: 2;    padding: 0 5px;    background-color: #fff;    margin-top: 0px;    }
+.section-head .border {display: block;  margin-top:5px;  height: 3px;    width: 100%;    background-color: #c8c8c8;    position: absolute;    top: 7px;    left: 0;    z-index: 1; }
+
+</style>
+
+<div>
+
+    <form name="orderForm">
+	<div class="row d-flex p-3">
+	    <h3 class=" d-flex">Order-Item</h3>
+	    <a class="btn btn-secondary  d-flex ml-auto" href="{% url 'shop:basketList' %}">Re-fresh</a>
+	</div>
+
+	<div>
+        <table class="table table-striped">   <!-- tip: 스크롤바를 통해 표시하기위해서 : class="table-responsive-sm"-->
+              <thead >
+                <tr class="d-flex">  <!-- //sm부터 크기2, display 하지말다가 sm부터 inline-flex형태로 나타냄(xs에서는 사라짐) -->
+                    <th class="col-2 col-sm-1 d-none d-inline-flex justify-content-center">Select</th>
+                    <th class="col-sm-3 d-none d-sm-inline-flex justify-content-center">Image</th>
+                    <th class="col-2 col-sm-2 d-none d-inline-flex justify-content-center">Name</th>
+                    <th class="col-2 col-sm-2 d-none d-inline-flex justify-content-center">Price</th>
+                    <th class="col-2 col-sm-1 d-none d-inline-flex justify-content-center">Number</th>
+                    <th class="col-2 col-sm-2 d-none d-inline-flex justify-content-center">Total</th>
+                    <th class="col-2 col-sm-1 d-none d-inline-flex justify-content-center">Delete</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% if orderItem %}
+
+                <tr class="d-flex">
+                    <td class="col-sm-1 d-flex justify-content-center">
+                        <input class="d-flex form-check-input" type="checkbox" value="{{orderItem.id}}" name="item_id" />
+                        <input type="hidden" id="price" value="{{orderItem.item_dcprice|mul:order_count}}">
+                    </td>
+                    <td class="col-sm-2 justify-content-center">
+                        <img class="img-fluid" src="{{ orderItem.item_mainimg.url }}" style="max-width:90px; height:auto;">
+                    </td>
+                    <td class="col-sm-3 justify-content-center">
+                        <a href="{% url 'shop:itemDetail' orderItem.id %}">{{orderItem.item_name}}</a>
+                    </td>
+
+                    {% if orderItem.item_dcprice %}
+                    <td class="col-sm-2 justify-content-center" >
+                        {{orderItem.item_dcprice}}원
+                    </td>
+                    <td class="col-sm-1 justify-content-center">
+                        {{order_count}}개
+                    </td>
+                    <td class="col-sm-2 justify-content-center">
+                        {{orderItem.item_dcprice|mul:order_count}}원
+                    </td>
+
+                    {% else %}
+                    <td class="col-sm-2 justify-content-center">
+                        {{orderItem.item_price}}원
+                    </td>
+                    <td class="col-sm-1 justify-content-center">
+                        {{order_count}}개
+                    </td>
+                    <td class="col-sm-2 justify-content-center">
+                        {{orderItem.item_price|mul:order_count}}원
+                    </td>
+                    {% endif %}
+                    <td class="col-sm-1 justify-content-center">
+
+                        <a href="{% url 'shop:basketDelete' orderItem.id %}" onclick="return confirm('Do you cancel order?');">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Trash_font_awesome.svg/32px-Trash_font_awesome.svg.png" >
+                        </a>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="7">
+                        <strong style="">[ Delivery ]</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        sale price <strong><label id="orderSum1">  원 </label> </strong>&nbsp;&nbsp;&nbsp;
+                            + delivery &nbsp;&nbsp;&nbsp;<strong>0 원</strong> =
+                            <strong style="color: #f8941d; font-size: 14px;">Total : <input name="total_price" id="orderSum2" style="border:none;"/> 원</strong>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" align="center"><font size="2">No item in orderList</font></td>
+                </tr>
+                {% endif %}
+
+              </tbody>
+        </table>
+	</div>
+
+    <!--Delivery Infomation-->
+	<div>
+        <div class="section-head">
+            <h3>Order-Information</h3>
+            <span class="border"></span>
+        </div>
+        <div class="row d-flex p-3">
+	        <h3 class=" d-flex">Order-Information</h3>
+	    </div>
+        <table class="table table-bordered">
+            <tbody>
+            <tr class="d-flex">
+                <th class="col-3">Name</th>
+                <td class="col-9">{{member.username}}</td>
+            </tr>
+            <tr class="d-flex">
+                <th class="col-3">Email</th>
+                <td class="col-9">{{member.email}}&nbsp;&nbsp;&nbsp;&nbsp;<font style="color:#cfcfcf;">*it will sended the order process through this email.</font></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="row d-flex p-3">
+	        <h3 class=" d-flex">*Delivery-Information</h3>
+	    </div>
+        <table class="table table-bordered">
+            <tbody>
+            <tr class="d-flex">
+                <th class="col-3">Receive Name</th>
+                <td class="col-9"><input type="text" name="delivery_name" value="" required /></td>
+            </tr>
+            <tr class="d-flex">
+                <th class="col-3">Phone</th>
+                <td class="col-9"><input type="text" name="delivery_phone" value="" required /></td>
+            </tr>
+            <tr class="d-flex">
+                <th class="col-3 fa fa-address-book">Address</th>
+                <td class="col-9">
+                    <!--<input type="text" name="delivery_phoneL" value="" required />-->
+                    <div class="form-group">
+                        <div class="form-row">
+                            <input type="text" class="form-control col-3" name="delivery_zipcode" id="zipcode" />&nbsp;&nbsp;&nbsp;
+                            <input type="button" class="form-control btn btn-primary col-3" value="Find zipcode" onclick="return openZipcode()" >
+                        </div><br/>
+                        <div class="form-row">
+                            <input type="text" class="form-control col-7" id="addr1" name="delivery_addr1"/>
+                            <input type="text" class="form-control col-5" id="addr2" name="delivery_addr2"/>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr class="d-flex">
+                <th class="col-3">Requests</th>
+                <td class="col-9">
+                    <textarea style="width:100%;" name="delivery_request"  placeholder=" please deposit to APT Office"></textarea></td>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="row d-flex p-3">
+	        <h3 class=" d-flex">*Payment-Information</h3>
+	    </div>
+
+        <table class="table table-bordered">
+            <tbody>
+            <tr  class="d-flex">
+                <th class="col-3">Payment type</th>
+                <td class="col-9">
+                    <input type="radio" name="pay_type" value="bankaccount" checked=""  />&nbsp;&nbsp;Bank Account&nbsp;
+                    <input type="radio" name="pay_type" value="creditcard" />&nbsp;&nbsp;Credit Card&nbsp;
+                </td>
+            </tr>
+
+            <tr  class="d-flex">
+                <th class="col-3">Bank-Account</th>
+                <td class="col-9">
+                    <input type="radio" name="pay_account" value="Wori Bank: 1002-053-209817 Petworld" />&nbsp;&nbsp;Wori Bank: 1002-053-209817 Myworld<br/><br/>
+                    <input type="radio" name="pay_account" value="ShinhanBank : 110-419-047027 Petworld" />&nbsp;&nbsp;ShinhanBank : 110-419-047027 Myworld<br/><br/>
+                    <input type="radio" name="pay_account" value="Kookmin Bank : 762-910017-00507 Petworld" />&nbsp;&nbsp;Kookmin Bank : 762-910017-00507 Myworld<br/><br/>
+                </td>
+            </tr>
+            <tr  class="d-flex">
+                <th class="col-3">Card-Number</th>
+                <td class="col-3">
+                    <input type="radio" name="card_type" value="SamsungCard" />&nbsp;&nbsp;Samsung Card<br/>
+                    <input type="radio" name="card_type" value="ShinhanCard" />&nbsp;&nbsp;Shinhan Card<br/>
+                    <input type="radio" name="card_type" value="KookminCard" />&nbsp;&nbsp;Kookmin Card
+                </td>
+                <td class="col-6">
+                    <input type="text" name="card_number" placeholder="카드 번호를 입력해 주세요." /><br/>
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+
+    </div>
+    </form>
+
+	<div class="d-flex p-3">
+  		<input class="btn btn-info p-2" value="ShopMall" onclick="history.back(); return false ;" />&nbsp;&nbsp;&nbsp;
+  		<input class="btn btn-info ml-auto p-2" value="Pay" onclick="payPro(); return false ;"/>
+	</div>
+
+</div>
+{% endblock %}
+
+{% block js %}
+<!-- daum zipcode -->
+<script src="http://dmaps.daum.net/map_js_init/postcode.v2.js"></script>
+
+<!-- // payment import -->
+<script type="text/javascript" src="https://service.iamport.kr/js/iamport.payment-1.1.2.js"></script>
+
+<script type="text/javascript">
+
+<!--$(document).ready(function(){-->
+  <!--$(".nav-tabs input").click(function(){-->
+    <!--$(this).tab('show');-->
+  <!--});-->
+<!--});-->
+
+function orderPro(){
+	var frm=document.orderForm;
+
+	var dataList = {
+	    "item_id":"{{orderItem.id}}",
+		"order_count":"{{order_count}}",
+		"member_id" : "{{ request.session.member_id}}",
+		"item_name":"{{orderItem.item_name}}",
+		"delivery_name": frm.delivery_name.value,
+        "delivery_phone": frm.delivery_phone.value,
+		"delivery_zipcode": frm.delivery_zipcode.value,
+		"delivery_addr1": frm.delivery_addr1.value,
+		"delivery_addr2": frm.delivery_addr2.value,
+		"delivery_request": frm.delivery_request.value,
+		"total_price": frm.total_price.value,
+		"pay_type": frm.pay_type.value,
+		"pay_account": frm.pay_account.value,
+		"csrfmiddlewaretoken": "{{ csrf_token }}"
+	};
+
+	var url2 = "{% url 'shop:orderPro' %}";
+
+	$.ajax({
+		type : "POST",
+		url : url2,
+		data : dataList,
+		success : function(data){
+			 $('body').html(data);
+		}
+	});
+}
+
+<!--total value 자동 입력-->
+var price = Number(0);
+$("input:checkbox").on('click', function() {
+	if ( $(this).prop('checked') ) {
+		 price += Number($(this).parent().find("#price").val());
+		 <!--price += Number($(this).find("#price").val());-->
+	   }
+	else {
+		price -= Number($(this).parent().find("#price").val());
+		<!--price -= Number($(this).find("#price").val());-->
+	     }
+	$("#orderSum1").html(addComma(price));
+	$("#orderSum2").val(price);
+});
+
+<!--1000 단위 콤마	-->
+function addComma(x) {
+	return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// 우편번호 검색  (다음 사이트에서 활용)
+function openZipcode() {
+    new daum.Postcode({
+        oncomplete: function(data) {
+            // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+            // 각 주소의 노출 규칙에 따라 주소를 조합한다.
+            // 내려오는 변수가 값이 없는 경우엔 공백('')값을 가지므로, 이를 참고하여 분기 한다.
+            var fullAddr = ''; // 최종 주소 변수
+            var extraAddr = ''; // 조합형 주소 변수
+            // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+            if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+                fullAddr = data.roadAddress;
+            } else { // 사용자가 지번 주소를 선택했을 경우(J)
+                fullAddr = data.jibunAddress;
+            }
+            // 사용자가 선택한 주소가 도로명 타입일때 조합한다.
+            if(data.userSelectedType === 'R'){
+                //법정동명이 있을 경우 추가한다.
+                if(data.bname !== ''){
+                    extraAddr += data.bname;
+                }
+                // 건물명이 있을 경우 추가한다.
+                if(data.buildingName !== ''){
+                    extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
+                }
+                // 조합형주소의 유무에 따라 양쪽에 괄호를 추가하여 최종 주소를 만든다.
+                fullAddr += (extraAddr !== '' ? ' ('+ extraAddr +')' : '');
+            }
+            // 우편번호와 주소 정보를 해당 필드에 넣는다.
+            document.getElementById('zipcode').value = data.zonecode; //5자리 새우편번호 사용
+            document.getElementById('addr1').value = fullAddr;
+            // 커서를 상세주소 필드로 이동한다.
+            document.getElementById('addr2').focus();
+        }
+    }).open();
+}
+
+//결제 시스템(name은 결재시스템 등록된 상호를 기입해야 함)
+function payPro(){
+
+    var frm=document.orderForm;
+    if($("input:checkbox[name=item_id]").is(":checked") == false ){
+	    alert("상품을 선택해 주세요");
+		return false;
+	}
+	if(frm.delivery_name.value == ""){alert("Enter receive-name!");return false;}
+	if(frm.delivery_phone.value == ""){alert("Enter phone number.");return false;}
+	if(frm.delivery_addr1.value == ""){alert("Enter address");return false;}
+	if(frm.delivery_addr2.value == ""){alert("Enter detail address");return false;}
+	if(frm.pay_type.value == ""){alert("Enter pay_type");return false;}
+
+
+
+	if(frm.pay_type.value=='creditcard'){
+
+		var IMP = window.IMP;   // 생략가능
+
+		IMP.init('imp23825507');        // 부여받은 가맹점 식별코드
+	    IMP.request_pay({
+	       pg : 'inicis',
+	       pay_method : 'card',
+	       merchant_uid : 'merchant_' + new Date().getTime(),
+	       name : "쿠아카페 신촌점" ,
+	       amount : 1000 ,
+	       buyer_email : "ilee@korea.com" ,
+	       buyer_name :  "{{orderItem.item_name}}" ,
+	       buyer_tel : "11" ,
+	       m_redirect_url : "https://www.yourdomain.com/payments/complete"
+	    }, function(rsp) {
+	    	alert("결재 처리 되었습니다");
+
+	    	orderPro();
+
+	    });
+	}else{
+		alert("무통장 입금시 상품명과 주문자 성명을 반드시 입력해 주세요!!!");
+	}
+
+    orderPro();
+}
+
+</script>
+
+{% endblock %}

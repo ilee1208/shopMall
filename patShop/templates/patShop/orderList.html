@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<style>
+.section-head {width:100%;   position: relative;    text-align: center;   }
+.section-head h3{position: relative;    display: inline-block;    font-size: 17px;   line-height: 1.3846153846;    text-transform: uppercase;    color: #808080;    z-index: 2;    padding: 0 5px;    background-color: #fff;    margin-top: 0px;    }
+.section-head .border {display: block;  margin-top:5px;  height: 3px;    width: 100%;    background-color: #c8c8c8;    position: absolute;    top: 7px;    left: 0;    z-index: 1; }
+</style>
+
+<div>
+	<div>
+		<h3>Order/Payment</h3>
+	</div>
+	<div>
+		<p>Thanks, Order is completed.</p>
+	</div>
+
+	<div>
+	<table class="table table-striped">
+		<thead >
+		    <tr class="d-flex">  <!-- //sm부터 크기2, display 하지말다가 sm부터 inline-flex형태로 나타냄(xs에서는 사라짐) -->
+				<th class="col-1 justify-content-center">NO</th>
+		     	<th class="col-4 justify-content-center">ITEM-Name</th>
+				<th class="col-1 justify-content-center">Number</th>
+				<th class="col-1 justify-content-center">Price</th>
+		     	<th class="col-2 justify-content-center">Payment</th>
+				<th class="col-2 justify-content-center">Date</th>
+		      	<th class="col-1 justify-content-center">Status</th>
+
+		    </tr>
+		</thead>
+		<tbody>
+		  	{% if orderItem%}
+			<tr class="d-flex">
+				<td class="col-1 justify-content-center">
+					{{orderItem.id}}
+				</td>
+				<td class="col-4 justify-content-center">
+					<a href="{% url 'patShop:itemDetail' orderItem.item_id %}">{{orderItem.item_name}}</a>
+				</td>
+				<td class="col-1 justify-content-center">
+					{{orderItem.order_count}}
+				</td>
+				<td class="col-1 justify-content-center">
+					{{orderItem.total_price}}
+				</td>
+				<td class="col-2 justify-content-center">
+					{{orderItem.pay_type}}
+				</td>
+				<td class="col-2 justify-content-center">
+					{{orderItem.created_at}}
+				</td>
+				<td class="col-1 justify-content-center">
+					on Order Processing
+				</td>
+
+			</tr>
+			{% else %}
+			<tr>
+				<td colspan="7" align="center"><font size="2">No item in order</font></td>
+			</tr>
+			{% endif %}
+
+	</table>
+	</div>
+
+	<div class="d-flex p-3">
+  		<input class="btn btn-info p-2" value="Back" onclick="history.back(); return false ;" />&nbsp;&nbsp;&nbsp;&nbsp;
+		<input class="btn btn-info p-2" value="View all Order" id="orderList" />
+		<a class="btn btn-secondary ml-auto" href="{% url 'patShop:itemList' %}" role="button">Shopping Mall</a>
+	</div>
+
+
+
+	<div id="more" style="display:none">
+		<div class="section-head">
+			<h3>All Order List</h3>
+			<span class="border"></span>
+		</div>
+		<div><input class="btn btn-info p-2 ml-auto" value="Clear" id="clear" /></div>
+		<table class="table table-striped">
+			<thead >
+				<tr class="d-flex">  <!-- //sm부터 크기2, display 하지말다가 sm부터 inline-flex형태로 나타냄(xs에서는 사라짐) -->
+					<th class="col-1 justify-content-center">NO</th>
+					<th class="col-4 justify-content-center">ITEM-Name</th>
+					<th class="col-1 justify-content-center">Number</th>
+					<th class="col-1 justify-content-center">Price</th>
+					<th class="col-2 justify-content-center">Payment</th>
+					<th class="col-2 justify-content-center">Date</th>
+					<th class="col-1 justify-content-center">Status</th>
+
+				</tr>
+			</thead>
+			<tbody>
+				{% if orderList %}
+				{% for orderItem in orderList %}
+				<tr class="d-flex">
+					<td class="col-1 justify-content-center">
+						{{orderItem.id}}
+					</td>
+					<td class="col-4 justify-content-center">
+						<a href="{% url 'patShop:itemDetail' orderItem.item_id %}">{{orderItem.item_name}}</a>
+					</td>
+					<td class="col-1 justify-content-center">
+						{{orderItem.order_count}}
+					</td>
+					<td class="col-1 justify-content-center">
+						{{orderItem.total_price}}
+					</td>
+					<td class="col-2 justify-content-center">
+						{{orderItem.pay_type}}
+					</td>
+					<td class="col-2 justify-content-center">
+						{{orderItem.created_at}}
+					</td>
+					<td class="col-1 justify-content-center">
+						Pending on Order
+					</td>
+				</tr>
+				{% endfor %}
+				{% else %}
+				<tr>
+					<td colspan="7" align="center"><font size="2">No item in order</font></td>
+				</tr>
+				{% endif %}
+
+		</table>
+	</dd>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+
+	$(document).ready(function() {
+		$("#orderList").click(function() {
+			$("#more").show();
+		});
+
+		$("#clear").click(function() {
+			$("#more").hide();
+		});
+	});
+
+</script>
+{% endblock %}

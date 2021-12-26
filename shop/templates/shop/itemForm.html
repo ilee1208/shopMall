@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+
+<!--#option1  전체적인 부트스트랩 적용(crispy)-->
+    <!--<form method="post" novalidate>-->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {{ form.media }}
+
+        {{ form|crispy }}
+
+        <div class="d-flex justify-content-around">
+            <input class="col-3 btn btn-secondary form-control" type="button" value="이전화면"  onclick="history.back(); return false;">
+            <input class="col-3 btn btn-primary form-control" type="submit" value="게시글 등록">
+        </div>
+    </form>
+
+{% endblock %}

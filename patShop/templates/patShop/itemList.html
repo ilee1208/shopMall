@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<style type="text/css">
+img {
+  display: block;
+  max-width:230px;
+  max-height:95px;
+  width: auto;
+  height: auto;
+}
+
+.section-head {width:100%;   position: relative;    text-align: center;   }
+.section-head h3{position: relative;    display: inline-block;    font-size: 17px;   line-height: 1.3846153846;    text-transform: uppercase;    color: #808080;    z-index: 2;    padding: 0 5px;    background-color: #fff;    margin-top: 0px;    }
+.section-head .border {display: block;  margin-top:5px;  height: 3px;    width: 100%;    background-color: #c8c8c8;    position: absolute;    top: 7px;    left: 0;    z-index: 1; }
+
+</style>
+
+<script type="text/javascript">
+$(function(){
+
+    $("dd").slice(0, 8).show(); 				// select the first 8
+
+    $("#loadMore").click(function(e){ 			// click event for load more
+        e.preventDefault();
+        $("dd:hidden").slice(0, 8).show(); 		// select next 4 hidden divs and show them
+        if($("div:hidden").length == 0){ 		// check if any hidden divs still exist
+        	$("#loadMore").fadeOut('slow');		//alert("No more divs"); // alert if there are none left
+        }
+        $('html,body').animate({
+            scrollTop: $(this).offset().top
+        }, 1500);
+    });
+});
+</script>
+
+<div class="main_itemlist">
+	<br/>
+	<!-- Search form   -->
+	<form class="d-flex justify-content-around" method="POST" action="{% url 'patShop:itemSearch' %}" >{% csrf_token %}
+		<select class="form-control border-rounded col-2" name="searchNum">
+			<option value="0">제품명</option>
+		</select>
+		<input type="text" class="form-control border-rounded col-5" name="searchWord" maxlength="20" placeholder="Search">
+		<input type="submit" class="btn btn-primary ciol-2" value="검색" />
+	</form>
+
+	<!--best-item-->
+	<div class="section-head">
+		<h3>B &nbsp;E &nbsp;S &nbsp;T &nbsp;&nbsp;&nbsp;&nbsp;I  &nbsp;T &nbsp; E  &nbsp;M</h3>
+		<span class="border"></span>
+	</div>
+
+	<div class="row col-sm-12 d-flex justify-content-around">
+
+		{% for bestItems in bestList %}
+		<dd class="col-3" style="display:none;">
+			<div class="card" id="move" >
+			    <a href="{% url 'patShop:itemDetail' bestItems.id %}" ><img class="card-img-top img-fluid rounded"  src="{{ bestItems.item_mainimg.url }}"  alt="상품 섬네일" title="{{bestitems.item_name}}"></a>
+
+			    <div class="card-body p-1">
+
+			      	<a href="{% url 'patShop:itemDetail' bestItems.id %}" ><h4 class="card-title">{{bestItems.item_name}}</h4></a>
+
+			      	<div>
+			      	{% if bestItems.item_dcprice %}
+						<font color="gray" size="2"><del><li class="prd-price">{{bestItems.item_price}}원</li></del></font>
+						<font color="red"><li class="prd-price">{{bestItems.item_dcprice}}원</li></font>
+					{% else %}
+						<li class="prd-price">{{bestItems.item_price}}원</li>
+					{% endif %}
+			      	</div>
+
+			    </div>
+			 </div>
+		</dd>
+		{% endfor %}
+
+	</div>
+
+	<!--item-list-->
+	<div class="section-head">
+		<h3>I  &nbsp;T &nbsp; E  &nbsp;M &nbsp;S</h3>
+		<span class="border"></span>
+	</div>
+
+	<div class="row col-sm-12 d-flex justify-content-around">
+
+		{% for items in itemList %}
+		<dd class="col-3" style="display:none;">
+			<div class="card" id="move" >
+			    <a href="{% url 'patShop:itemDetail' items.id %}" ><img class="card-img-top img-fluid rounded"  src="{{ items.item_mainimg.url }}"  alt="상품 섬네일" title="{{items.ITEM_NAME}}"></a>
+
+			    <div class="card-body p-1">
+
+			      	<a href="{% url 'patShop:itemDetail' items.id %}" ><h4 class="card-title">{{items.item_name}}</h4></a>
+
+			      	<div>
+			      	{% if items.item_dcprice %}
+						<font color="gray" size="2"><del><li class="prd-price">{{items.item_price}}원</li></del></font>
+						<font color="red"><li class="prd-price">{{items.item_dcprice}}원</li></font>
+					{% else %}
+						<li class="prd-price">{{items.item_price}}원</li>
+					{% endif %}
+			      	</div>
+
+			    </div>
+			 </div>
+		</dd>
+		{% endfor %}
+
+	</div>
+
+	<!-- 페이징 -->
+	{% if boards.has_other_pages %}
+    <ul class="pagination d-flex justify-content-center">
+
+        {% if board.has_previous %}
+          <li><a href="?page={{ boards.previous_page_number }}">&laquo;</a></li>
+        {% else %}
+          <li class="disabled"><span>&laquo;</span></li>
+        {% endif %}
+		&nbsp;
+        {% for i in boards.paginator.page_range %}
+          {% if boards.number == i %}
+            <li class="active"><span>{{ i }} <span class="sr-only">(current) </span></span></li>
+          {% else %}
+            <li><a href="?page={{ i }}">{{ i }}</a></li>
+          {% endif %}&nbsp;
+        {% endfor %}
+		&nbsp;
+        {% if users.has_next %}
+          <li><a href="?page={{ boards.next_page_number }}">&raquo;</a></li>
+        {% else %}
+          <li class="disabled"><span>&raquo;</span></li>
+        {% endif %}
+    </ul>
+    {% endif %}
+
+	<!--button_list-->
+	<div class="text-center">
+		<input type="button" id="loadMore" class="btn btn-success" value="More" />&nbsp;&nbsp;&nbsp;
+		<input type="button" class="btn btn-success" value="Back" onclick="history.back(); return false ;" />&nbsp;&nbsp;&nbsp;
+		<a class="mx-auto btn btn-secondary" href="{% url 'patShop:itemAdd' %}" role="button">신규등록하기</a>
+	</div>
+
+</div><br/>
+
+
+{% endblock %}
+
+
+
+
+
+

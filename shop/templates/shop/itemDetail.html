@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="itemView">
+	<br/>
+
+	<!--item-MainView-->
+	<div class="d-flex justify-content-end">
+		<p>hshop>{{item.item_type }}</p>
+  	</div>
+    <div class="row">
+
+        <div class="col-sm-5">
+            <img class="img-fluid" src="{{ item.item_mainimg.url }}" style="max-width:250px; height:auto;">
+        </div>
+
+        <div class="col-sm-7">
+		<form name="itemform" action="#" method="POST">
+			{% csrf_token %}
+
+			<div>
+                <h3>{{item.item_name}}</h3>
+                <input type="hidden" name="item_id" value="{{item_id}}">
+
+			</div>
+			<div>
+				{% if item.item_dcprice %}
+					<font color="gray" size="2"><del><li class="prd-price">{{item.item_price}}원</li></del></font>
+					<font color="red"><li class="prd-price">{{item.item_dcprice}}원</li></font>
+				{% else %}
+					<li class="">{{item.item_price}}원</li>
+				{% endif %}
+			</div>
+			<div>
+				<p class="d-flex justify-content-end"><img src="http://img.echosting.cafe24.com/skin/base_ko_KR/product/ico_information.gif" alt="" />
+						Please enter number!
+				</p>
+				<table class="table table-striped">
+					<tbody>
+						<tr class="d-flex justify-content-between">
+							<td class="col-6" >
+								<span>{{item.item_name}}</span>
+							</td>
+
+							<td class="col-6">
+								<input type="number" id="amount" name="order_count" value=1 onclick="changeAmount()"/>&nbsp;
+        						<span id="rm"></span>
+
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="d-flex justify-content-end">
+  				<strong>총 상품금액</strong>&nbsp;&nbsp; :&nbsp;&nbsp; <span id="total" name="total"></span>원&nbsp;&nbsp;
+  				<span id="am"></span>
+  			</div><br/><br/>
+
+			<div class="d-flex justify-content-center">
+				<!-- 잔여수량이 0 이면 솔드아웃 처리 -->
+				{% if item.item_remaincount > 0 %}&nbsp;&nbsp;&nbsp;&nbsp;
+					<a href="JavaScript:onBasket()" class="btn btn-success">Go Basket</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<a href="JavaScript:onOrder()" class="btn btn-success">Go Order</a>&nbsp;
+				{% else %}
+					<img src="http://ppoya.co.kr/images/btn_soldout.gif" alt="sold out">
+				{% endif %}
+			</div>
+
+		</form>
+        </div>
+    </div><br/><br/>
+
+	<!--Deatail Item Info-->
+    <div>
+		<div class="d-flex justify-content-start">
+			<input class="btn btn-success" value="상세정보">
+		</div>
+		<div>
+			<img class="img-fluid" src="{{ item.item_detailimg.url }}" style="width:100%; height:auto;">
+		</div>
+    </div>
+
+	<!--Delovery Info-->
+    <div>
+		<div class="d-flex justify-content-start">
+			<input class="btn btn-success" value="배송/교환/반품 안내">
+		</div>
+		<div>
+			<img class="img-fluid" src="{{ item.item_basketimg.url }}" style="width:100%; height:auto;">
+		</div>
+    </div>
+
+	<!--  // 댓글/리뷰 작성 -->
+	<div id="review">
+		<span class="fa fa-envelope"></span><label>Riview</label>
+		<form action="{% url 'shop:commentAdd' %}" method="POST">
+			{% csrf_token %}
+
+			<input type="hidden" name="username" value="{{request.session.member_username}}" />
+			<input type="hidden" name="item_id" value="{{item_id}}" />
+
+			<textarea class="form-control" name="review_content" rows="3"></textarea>
+			<input class="btn btn-secondary d-flex justify-content-end" type="submit" value="Register"><br/>
+		</form>
+
+
+		<!-- CommentView -->
+		{% for comment in commentList %}
+		<div class="d-flex ">
+			<div class="">{{comment.username}}</div>
+		</div>
+		<div class="form-group">
+		  <textarea class="form-control" rows="3" >{{comment.review_content}}</textarea>
+		</div>
+		<div class="d-flex d-flex justify-content-between">
+			<div class="">{{comment.review_date}}</div>
+
+			{% if comment.username == request.session.member_username %}
+				<a class="btn btn-rounded btn-sm" href="{% url 'shop:commentDelete' comment.id %}">Delete</a>
+			{% endif %}
+		</div><br/><br/>
+		{% endfor %}
+	  </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+// 최초 화면 로딩시 자동 실행 파일
+$(document).ready(function(){
+
+	var amount = document.itemform.amount.value;
+	var price = null;
+
+	if("{{item.item_dcprice}}" != ""){
+		price="{{item.item_dcprice}}";
+	}
+	else {
+		price="{{item.item_price}}";
+	}
+
+	$("#total").html(addComma(price*amount));
+	$("#am").html("("+amount+"개)");
+	$("#rm").html("잔량 :"+"{{item.item_remaincount}}");
+
+	//소숫점 이하 생략
+	$("#total").each(
+		function() {
+			if (!isNaN(Number($(this).text())) && $(this).text())
+				$(this).text(
+					Number($(this).text()).toLocaleString().split('.')[0]);
+		}
+	);
+});
+
+//클릭이벤트로 실행
+function changeAmount() {
+
+	var obj = document.itemform;
+	var amount = parseInt(obj.amount.value);
+	var price = null;
+
+	if("{{item.item_dcprice}}" != ""){
+		price={{item.item_dcprice}};
+	}
+	else {
+		price="{{item.item_price}}";
+	}
+	var remain =parseInt({{item.item_remaincount}});
+
+	if(amount > remain){
+		alert("잔여수량만큼 구매하세요");
+		amount=1;
+		$("#amount").html(amount);
+	}
+
+	$("#total").html(addComma(price*amount));
+	$("#am").html("("+amount+"개)");
+	$("#rm").html("잔량 :"+(remain-amount));
+}
+
+// 숫자 천단위 콤마
+function addComma(x) {
+	return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function onBasket(){
+	var obj=document.itemform;
+	var dataList = {
+		"item": "{{item.id}}",
+		"item_name" : "{{item.item_name}}",
+		"basket_count": obj.amount.value,
+		"member_id" : "{{ request.session.member_id}}",
+		'csrfmiddlewaretoken': '{{ csrf_token }}'
+	};
+	var url1 = "{% url 'shop:basketInsert' %}";
+	alert("상품을 장바구니에 담겠습니다");
+
+	$.ajax({
+		type : "POST",
+		url : url1,
+		data : dataList,
+		success : function(data){
+			$('body').html(data);
+		}
+	});
+}
+
+function onOrder(){
+    confirm("주문하시겠습니까?")
+
+    var frm=document.itemform;
+
+	frm.action="{% url 'shop:orderForm' %}";
+	frm.method="POST";
+	frm.submit();
+}
+
+</script>
+{% endblock %}
+
